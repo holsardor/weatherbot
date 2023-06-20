@@ -1,5 +1,14 @@
+using Telegram.Bot;
+using Telegram.Bot.Polling;
+using weatherbot;
+
 var builder = WebApplication.CreateBuilder(args);
 
-var app = builder.Build();
+builder.Services.AddHostedService<BotBackgroundService>();
+builder.Services.AddTransient<IUpdateHandler, UpdateHandler>();
 
-app.Run();
+builder.Services.AddSingleton<ITelegramBotClient, TelegramBotClient>(
+    p => new TelegramBotClient(builder.Configuration.GetValue("BotApiKey", string.Empty)));
+
+
+builder.Build().Run();
