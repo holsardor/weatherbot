@@ -6,10 +6,10 @@ public partial class UpdateHandler
 {
     public Task HandleEditMessageUpdateAsync(ITelegramBotClient botClient, Message editedMessage, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Recived edited message from {userId} New Text: {newText}",
-        editedMessage.Chat.Id,
-        editedMessage.Text);
+        var userName = editedMessage.From?.Username ?? editedMessage.From.FirstName;
 
-        return Task.CompletedTask;
+        _logger.LogInformation("Recived message from {username}", userName);
+        
+        return Task.CompletedTask; 
     }
 }

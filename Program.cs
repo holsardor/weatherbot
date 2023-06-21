@@ -10,5 +10,4 @@ builder.Services.AddTransient<IUpdateHandler, UpdateHandler>();
 builder.Services.AddSingleton<ITelegramBotClient, TelegramBotClient>(
     p => new TelegramBotClient(builder.Configuration.GetValue("BotApiKey", string.Empty)));
 
-
 builder.Build().Run();
