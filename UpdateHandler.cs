@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Caching.Distributed;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
@@ -7,15 +8,19 @@ namespace weatherbot;
 public partial class UpdateHandler : IUpdateHandler
 {
     private readonly ILogger<UpdateHandler> _logger;
+    private readonly WeatherService _weatherService;
+    private readonly IDistributedCache _distributedCache;
 
-    public UpdateHandler(ILogger<UpdateHandler> logger)
+    public UpdateHandler(ILogger<UpdateHandler> logger, WeatherService weatherService, IDistributedCache distributedCache)
     {
         _logger = logger;
+        _weatherService = weatherService;
+        _distributedCache = distributedCache;
     }
 
     public Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
     {
-        _logger.LogError(exception, "Nimadir xotolik yuz berdi xatolikka qarang");
+        _logger.LogError(exception, "Error while Bot polling.");
         return Task.CompletedTask;
     }
 
@@ -26,6 +31,8 @@ public partial class UpdateHandler : IUpdateHandler
         {
             UpdateType.Message => HandleMessageUpdateAsync(botClient, update.Message, cancellationToken),
             UpdateType.EditedMessage => HandleEditMessageUpdateAsync(botClient, update.EditedMessage, cancellationToken),
+            UpdateType.CallbackQuery => HandleCallbackQueryUpdateAsync(botClient, update.CallbackQuery, cancellationToken),
+            
             _ => HandleUnknowUpdateAsync(botClient, update, cancellationToken)
         };
 
@@ -35,8 +42,7 @@ public partial class UpdateHandler : IUpdateHandler
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error while handling {updateType} update", update.Type);
-            throw;
+            await HandlePollingErrorAsync(botClient, ex, cancellationToken);
         }
     }
 
